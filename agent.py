@@ -1,64 +1,86 @@
 import os
 from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
-from langchain_core.messages import SystemMessage
+from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
 from langgraph.prebuilt import create_react_agent
+from langchain_core.exceptions import OutputParserException
 from tools import TOOL_KIT
 
 load_dotenv()
 
 
-class Agent:
-    def __init__(self, instructions:str, model:str="gpt-4o-mini"):
+ENERGY_SYSTEM_INSTRUCTIONS = """
+You are EcoHome Energy Advisor — an expert AI designed to analyze household
+energy usage and provide smart, actionable recommendations.
+"""
 
-        # Initialize the LLM
-        llm = ChatOpenAI(
+
+class Agent:
+    def __init__(self, instructions: str = ENERGY_SYSTEM_INSTRUCTIONS,
+                 model: str = "gpt-4o-mini"):
+
+        self.llm = ChatOpenAI(
             model=model,
             temperature=0.0,
-            base_url="https://openai.vocareum.com/v1",
-            api_key=os.getenv("VOCAREUM_API_KEY")
+            api_key=os.getenv("OPENAI_API_KEY")
         )
 
-        # Create the Energy Advisor agent
         self.graph = create_react_agent(
-            name="energy_advisor",
-            prompt=SystemMessage(content=instructions),
-            model=llm,
+            name="eco_energy_advisor",
+            prompt=instructions,  # <-- FIXED
+            model=self.llm,
             tools=TOOL_KIT,
-        )
+        )   
+  
+        
 
-    def invoke(self, question: str, context:str=None) -> str:
+    def invoke(self, question: str, location: str = None, context: str = None, return_raw: bool = False) -> str:
         """
         Ask the Energy Advisor a question about energy optimization.
-        
+
         Args:
-            question (str): The user's question about energy optimization
-            location (str): Location for weather and pricing data
+            question (str): The user's question
+            location (str, optional): Location for weather and pricing context
+            context (str, optional): Additional system context
         
         Returns:
             str: The advisor's response with recommendations
         """
-        
-        messages = []
+
+        sys_context_parts = []
+
+        if location:
+            sys_context_parts.append(f"Location: {location}")
+
         if context:
-            # Add some context to the question as a system message
+            sys_context_parts.append(context)
+
+        messages = []
+
+        # Add system context if any exists
+        if sys_context_parts:
             messages.append(
-                ("system", context)
+                SystemMessage(content="\n".join(sys_context_parts))
             )
 
+        # Add the main user request
         messages.append(
-            ("user", question)
+            HumanMessage(content=question)
         )
-        
-        # Get response from the agent
-        response = self.graph.invoke(
-            input= {
-                "messages": messages
-            }
+
+        # Get response from the agent graph
+        raw_response = self.graph.invoke(
+            {"messages": messages}
         )
-        
-        return response
+        # If debugging tools → return full graph output
+        if return_raw:
+            return raw_response
+
+        # Extract only the final assistant message text
+        return raw_response["messages"][-1].content
+
 
     def get_agent_tools(self):
         """Get list of available tools for the Energy Advisor"""
         return [t.name for t in TOOL_KIT]
+

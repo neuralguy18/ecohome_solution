@@ -10,7 +10,7 @@ from langchain_core.tools import tool
 from langchain_chroma import Chroma
 from langchain_openai import OpenAIEmbeddings
 from langchain_community.document_loaders import TextLoader
-from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 from models.energy import DatabaseManager
 
 # Initialize database manager
@@ -51,8 +51,36 @@ def get_weather_forecast(location: str, days: int = 3) -> Dict[str, Any]:
         }
     """
     # Mock weather API or call OpenWeatherMap or similar
-    
-    return 
+    days = min(max(days, 1), 7)  # enforce 1–7 day limits
+
+    conditions = ["sunny", "partly_cloudy", "cloudy", "rainy"]
+    base_temp = random.randint(10, 25)
+
+    forecast_data = {
+        "location": location,
+        "forecast_days": days,
+        "current": {
+            "temperature_c": base_temp + random.uniform(-2, 2),
+            "condition": random.choice(conditions),
+            "humidity": random.randint(30, 80),
+            "wind_speed": round(random.uniform(1, 10), 1)
+        },
+        "hourly": []
+    }
+
+    # Generate hourly data for the first day only (24 hours)
+    for hour in range(24):
+        hour_data = {
+            "hour": hour,
+            "temperature_c": round(base_temp + random.uniform(-5, 5), 1),
+            "condition": random.choice(conditions),
+            "solar_irradiance": max(0, round(random.uniform(100, 900) if 6 <= hour <= 18 else 0, 1)),
+            "humidity": random.randint(30, 85),
+            "wind_speed": round(random.uniform(1, 10), 1)
+        }
+        forecast_data["hourly"].append(hour_data)
+
+    return forecast_data
 
 # TODO: Implement get_electricity_prices tool
 @tool
@@ -84,13 +112,36 @@ def get_electricity_prices(date: str = None) -> Dict[str, Any]:
     if date is None:
         date = datetime.now().strftime("%Y-%m-%d")
     
+
     # Mock electricity pricing - in real implementation, this would call a pricing API
     # Use a base price per kWh    
     # Then generate hourly rates with peak/off-peak pricing
     # Peak normally between 6 and 22...
     # demand_charge should be 0 if off-peak
 
-    return 
+    base_rate = 0.15  # base USD/kWh
+    peak_multiplier = 1.6
+    peak_hours = range(17, 22)  # 5PM to 9PM
+
+    hourly_rates = []
+    for hour in range(24):
+        is_peak = hour in peak_hours
+        rate = base_rate * (peak_multiplier if is_peak else 1.0)
+        hourly_rates.append({
+            "hour": hour,
+            "rate": round(rate, 3),
+            "period": "peak" if is_peak else "off_peak",
+            "demand_charge": round(rate * 0.1, 3) if is_peak else 0
+        })
+
+    return {
+        "date": date,
+        "pricing_type": "time_of_use",
+        "currency": "USD",
+        "unit": "per_kWh",
+        "hourly_rates": hourly_rates
+    }
+
 
 @tool
 def query_energy_usage(start_date: str, end_date: str, device_type: str = None) -> Dict[str, Any]:
@@ -260,7 +311,7 @@ def search_energy_tips(query: str, max_results: int = 5) -> Dict[str, Any]:
             splits = text_splitter.split_documents(documents)
             
             # Create vector store
-            embeddings = OpenAIEmbeddings()
+            embeddings = OpenAIEmbeddings(model="text-embedding-3-small",api_key = os.getenv("OPENAI_API_KEY"))
             vectorstore = Chroma.from_documents(
                 documents=splits,
                 embedding=embeddings,
@@ -268,7 +319,7 @@ def search_energy_tips(query: str, max_results: int = 5) -> Dict[str, Any]:
             )
         else:
             # Load existing vector store
-            embeddings = OpenAIEmbeddings()
+            embeddings = OpenAIEmbeddings(model="text-embedding-3-small",api_key = os.getenv("OPENAI_API_KEY"))
             vectorstore = Chroma(
                 persist_directory=persist_directory,
                 embedding_function=embeddings
