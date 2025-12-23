@@ -1,4 +1,7 @@
-https://img.shields.io/badge/Python-3.10+-blue.svg
+![Static Badge](https://img.shields.io/badge/Python-3.10%2B%20-blue)  ![Static Badge](https://img.shields.io/badge/LangGraph-Latest%20-green) ![Static Badge](https://img.shields.io/badge/License-MIT%20-yellow)
+
+
+
 # EcoHome Energy Advisor
 
 An AI-powered agentic energy advisor that optimizes home energy usage for cost savings and reduced carbon footprint using weather forecasts, dynamic pricing, historical data, and retrieval-augmented generation (RAG).
