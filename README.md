@@ -1,19 +1,35 @@
 # EcoHome Energy Advisor
 
-An AI-powered energy optimization agent that helps customers reduce electricity costs and environmental impact through personalized recommendations.
+An AI-powered agentic energy advisor that optimizes home energy usage for cost savings and reduced carbon footprint using weather forecasts, dynamic pricing, historical data, and retrieval-augmented generation (RAG).
 
 ## Project Overview
 
-EcoHome is a smart-home energy start-up that helps customers with solar panels, electric vehicles, and smart thermostats optimize their energy usage. The Energy Advisor agent provides personalized recommendations about when to run devices to minimize costs and carbon footprint.
+EcoHome is a personal prototype I built during my career break to explore agentic AI in a real-world sustainability use case. The Energy Advisor is an intelligent agent that helps homeowners with solar panels, electric vehicles (EVs), smart thermostats, and appliances make optimal decisions — such as when to charge the EV, run the dishwasher, or adjust HVAC settings — to minimize electricity costs and environmental impact.
+The agent reasons step-by-step over multiple data sources, uses tools autonomously, and provides personalized, actionable recommendations with estimated savings.
+
+### Key outcomes from simulations
+  
+  - Achieved **15–30% simulated cost reductions** depending on location and usage patterns
+  - Reduced estimated carbon emissions by **~20%** through maximized solar utilization and off-peak shifting
+  - Demonstrates end-to-end agentic workflow with planning, tool calling, shared state, and safe execution
 
 ### Key Features
 
-- **Weather Integration**: Uses weather forecasts to predict solar generation
-- **Dynamic Pricing**: Considers time-of-day electricity prices for cost optimization
-- **Historical Analysis**: Queries past energy usage patterns for personalized advice
-- **RAG Pipeline**: Retrieves relevant energy-saving tips and best practices
+- **Weather-aware solar forecasting**: Uses weather forecasts to predict solar generation
+- **Dynamic electricity pricing integration**: Considers time-of-day electricity prices for cost optimization
+- **Historical usage analysis**: Personalizes advice from past consumption patterns
+- **RAG powered energy tips**: Retrieves best practices and relevant energy-saving tips
 - **Multi-device Optimization**: Handles EVs, HVAC, appliances, and solar systems
 - **Cost Calculations**: Provides specific savings estimates and ROI analysis
+
+## Architecture
+
+<img width="1285" height="781" alt="image" src="https://github.com/user-attachments/assets/f38348ea-9416-4cd6-92e9-1d5875358018" />
+
+
+
+
+
 
 ## Project Structure
 
